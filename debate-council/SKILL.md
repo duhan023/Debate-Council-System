@@ -1,7 +1,7 @@
 ---
 name: debate-council
 description: >-
-  Adversarial debate council for stress-testing a question or decision. Ten debaters (5 for, 5 against) argue parliamentary style; a neutral judge scores every argument against a rubric and rules. The user summons it with their own chosen word. SUMMON WORD: "debate council". Trigger ONLY when the user's message contains that exact summon word - for example "debate council, should I take the offer?" or "run this through the debate council". Do NOT trigger on ordinary questions, pros-and-cons requests, or debate-adjacent language that lacks the summon word; the user reserves this for explicit invocation. Variants: the summon word followed by "full" returns the complete transcript; the summon word followed by "gameplan" runs Gameplan mode - the top 3 research-backed fixes for a problem, either the one a ruling just exposed or any problem the user names.
+  Adversarial debate council for stress-testing a question or decision. Ten debaters (5 for, 5 against) argue parliamentary style; a neutral judge scores every argument against a rubric and rules. The user summons it with their own chosen word. SUMMON WORD: "debate council". Trigger ONLY when the user's message contains that exact summon word - for example "debate council, should I take the offer?" or "run this through the debate council". Do NOT trigger on ordinary questions, pros-and-cons requests, or debate-adjacent language that lacks the summon word; the user reserves this for explicit invocation. Default output is a single 25-30 word verdict line and nothing else. Variants: the summon word followed by "full" returns the complete transcript; the summon word followed by "gameplan" runs Gameplan mode - the top 3 research-backed fixes for a problem, either the one a ruling just exposed or any problem the user names.
 ---
 
 # Debate Council
@@ -14,13 +14,13 @@ A structured adversarial council. The user brings a question; ten debaters argue
 
 The council answers to whatever word the user chose at install. That word appears in three places: this line, the `SUMMON WORD:` field in the frontmatter description, and the mode table below. `setup.py` in the repository rewrites all three; manual find-and-replace of `debate council` does the same.
 
-**First invocation check.** If the summon word above is still the default `debate council`, then on the first invocation in a conversation add one line *after* the ruling: "You're using the default summon word. Pick your own — a name, a word from your language, anything — and run `python setup.py --word <yours>` (or find-and-replace `debate council` in SKILL.md) to make it permanent." Never block or delay the debate for this; the user asked a question and gets an answer. Never suggest a specific word — the choice is theirs.
+**First invocation check.** If the summon word above is still the default `debate council`, then on the first invocation in a conversation add one line *after* the verdict line: "You're using the default summon word. Pick your own — a name, a word from your language, anything — and run `python setup.py --word <yours>` (or find-and-replace `debate council` in SKILL.md) to make it permanent." Never block or delay the debate for this; the user asked a question and gets an answer. Never suggest a specific word — the choice is theirs.
 
 ## Modes
 
 | Invocation | What runs |
 |---|---|
-| `debate council` | Full debate internally, condensed output (default) |
+| `debate council` | Full debate internally, one-line verdict only (25–30 words) |
 | `debate council full` | Full debate, complete transcript output |
 | `debate council gameplan` | Gameplan mode — see below |
 
@@ -65,37 +65,15 @@ Debater rules:
 
 Read `references/rubric.md` and score each surviving argument on its three dimensions before ruling. The rubric exists so that two runs of the same motion reach similar verdicts; do not skip it in favour of an overall impression.
 
-## Output — condensed (default)
+## Output — verdict only (default)
 
-Use this exact structure. Keep it tight; the user wants substance, not ceremony.
+Run Steps 0–4 in full internally: motion, prior, facts, ten debaters, rebuttals, rubric scoring. Then output **one line and nothing else**:
 
 ```
-**Motion:** [one sentence]
-**Scope:** [only for medical / legal / high-stakes financial motions; otherwise omit]
-**Assumptions:** [only if any were made; otherwise omit]
-**Judge's prior:** [initial lean in one sentence, written before the debate]
-
-**For — strongest 3**
-1. [Angle] — argument, with the fact or reasoning it rests on
-2. ...
-3. ...
-
-**Against — strongest 3**
-1. [Angle] — argument, with the fact or reasoning it rests on
-2. ...
-3. ...
-
-**Rebuttals that landed**
-- [Which points survived cross-examination and which did not, in 2–4 lines]
-
-**Judge's ruling**
-Verdict: [For / Against / Conditional — state the condition / Insufficient evidence]
-Confidence: [Low / Medium / High] — one line on why
-Decisive factor: [the single consideration that carried the ruling]
-Dissent: [the strongest objection that survived and still cuts against the verdict — never "none"]
-Prior check: [Held / Moved — one line on whether the debate changed the judge's initial lean and what did it]
-What would flip it: [the fact or change that would reverse the verdict]
+Verdict: [For / Against / Conditional / Insufficient evidence] — [the decisive reason, and the condition if Conditional]. Confidence [Low/Medium/High].
 ```
+
+Hard limits: 25–30 words total, one line, no preamble, no Motion line, no Dissent, no Prior check, no follow-up offer. If a material fact is missing, ask the 1–3 clarifying questions instead of ruling (Step 0) — that is the only case where the output is not the verdict line. The full debate, scorecard, and Dissent remain available via the summon word followed by `full`; the ruling must still be computed as if the full block were being shown, so the one line is a compression of a complete ruling, not a shortcut.
 
 ## Output — full transcript (`full`)
 
@@ -122,7 +100,7 @@ Same header (Motion, Scope, Assumptions, Judge's prior), then:
 
 **Scorecard** — table: argument | evidence tier | validity | rebuttal survival | weight (per references/rubric.md)
 
-**Judge's ruling** — identical block to the condensed format, including Dissent and Prior check
+**Judge's ruling** — Verdict, Confidence, Decisive factor, Dissent, Prior check, What would flip it
 ```
 
 ## Judge's standard
@@ -187,4 +165,4 @@ The motion becomes: "The user should accept the 12-month contract PM role at $95
 
 Judge's prior: "Leaning For — paid work beats unpaid searching unless the contract blocks the search."
 
-Before debating, the judge asks (if unknown): current runway in months, whether the contract is W-2 or 1099, and whether it blocks continued interviewing. With those answered, run the council and produce the condensed output. A plausible ruling: "Conditional — For, if the contract permits interviewing and is W-2; Against if 1099 with no benefits and runway exceeds 6 months," with confidence, the decisive factor, a Dissent (e.g. "contract history can signal instability to some full-time hiring managers"), and a Prior check ("Held, but narrowed to a condition the prior ignored").
+Before debating, the judge asks (if unknown): current runway in months, whether the contract is W-2 or 1099, and whether it blocks continued interviewing. With those answered, run the council and output one line. A plausible verdict line: "Conditional — For, if the contract permits interviewing and is W-2; Against if 1099 with no benefits and runway exceeds 6 months," with confidence, the decisive factor, a Dissent (e.g. "contract history can signal instability to some full-time hiring managers"), and a Prior check ("Held, but narrowed to a condition the prior ignored").
